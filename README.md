@@ -103,5 +103,3 @@ ORDER BY
 	2 DESC
 LIMIT 1;
 ```
-
-
