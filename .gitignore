@@ -45,3 +45,4 @@ terraform.rc
 
 # secrets
 *.json
+*.txt
