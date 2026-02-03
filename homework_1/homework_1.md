@@ -27,9 +27,6 @@ Answer: The version of pip is 25.3
 - postgres:5432
 - db:5432
 
-```
-postgres:5432
-```
 Answer: postgres:5432
 
 
