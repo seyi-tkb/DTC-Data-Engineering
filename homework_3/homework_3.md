@@ -5,7 +5,13 @@
 - 20,332,093
 - 85,431,289
 
-Answer: 
+```sql
+SELECT 
+    count(*)
+FROM 
+    `terraform-demo-485118.zoomcamp.external_yellow_tripdata`
+```
+Answer: 41169720
 
 #### Question 2. What is the estimated amount of data that will be read when this query is executed on the External Table and the Table? (1 point)
 
@@ -14,7 +20,20 @@ Answer:
 - 2.14 GB for the External Table and 0MB for the Materialized Table
 - 0 MB for the External Table and 0MB for the Materialized Table
 
-Answer: 
+```sql
+-- External table
+SELECT 
+    count(*)
+FROM 
+    `terraform-demo-485118.zoomcamp.external_yellow_tripdata`
+
+-- Materialized table
+SELECT 
+    count(*)
+FROM 
+    `terraform-demo-485118.zoomcamp.yellow_tripdata_non_partitioned`
+```
+Answer: 0 MB for the External Table and 0MB for the Materialized Table
 
 #### Question 3. Why are the estimated number of Bytes different? (1 point)
 
@@ -23,7 +42,7 @@ Answer:
 - BigQuery automatically caches the first queried column, so adding a second column increases processing time but does not affect the estimated bytes scanned.
 - When selecting multiple columns, BigQuery performs an implicit join operation between them, increasing the estimated bytes processed
 
-Answer: 
+Answer: BigQuery is a columnar database, and it only scans the specific columns requested in the query. Querying two columns (PULocationID, DOLocationID) requires reading more data than querying one column (PULocationID), leading to a higher estimated number of bytes processed.
 
 #### Question 4. How many records have a fare_amount of 0? (1 point)
 
@@ -32,7 +51,15 @@ Answer:
 - 20,188,016
 - 8,333
 
-Answer: 
+```sql
+SELECT 
+    count(*)
+FROM 
+    `terraform-demo-485118.zoomcamp.external_yellow_tripdata`
+WHERE 
+    fare_amount = 0
+```
+Answer: 17260
 
 #### Question 5. What is the best strategy to make an optimized table in Big Query if your query will always filter based on tpep_dropoff_datetime and order the results by VendorID (Create a new table with this strategy) (1 point)
 
@@ -41,7 +68,7 @@ Answer:
 - Cluster on tpep_dropoff_datetime Partition by VendorID
 - Partition by tpep_dropoff_datetime and Partition by VendorID
 
-Answer: 
+Answer: Partition by tpep_dropoff_datetime and Cluster on VendorID
 
 #### Question 6. Write a query to retrieve the distinct VendorIDs between tpep_dropoff_datetime 2024-03-01 and 2024-03-15 (inclusive). Use the materialized table you created earlier in your from clause and note the estimated bytes. Now change the table in the from clause to the partitioned table you created for question 5 and note the estimated bytes processed. What are these values? (1 point)
 
@@ -50,7 +77,35 @@ Answer:
 - 5.87 MB for non-partitioned table and 0 MB for the partitioned table
 - 310.31 MB for non-partitioned table and 285.64 MB for the partitioned table
 
-Answer: 
+```sql
+-- Create Partitioned & Clustered Table
+CREATE OR REPLACE TABLE
+  `terraform-demo-485118.zoomcamp.yellow_tripdata_partclust`
+PARTITION BY
+  DATE (tpep_pickup_datetime)
+CLUSTER BY
+  VendorID
+AS 
+SELECT *
+FROM `terraform-demo-485118.zoomcamp.external_yellow_tripdata`;
+
+-- Query non-partitioned table
+SELECT 
+    DISTINCT (VendorID)
+FROM 
+    `terraform-demo-485118.zoomcamp.yellow_tripdata_non_partitioned`
+WHERE 
+    tpep_pickup_datetime BETWEEN '2024-03-01' AND '2024-03-15';
+
+-- Query partitioned and clustered table
+SELECT 
+    DISTINCT (VendorID)
+FROM 
+    `terraform-demo-485118.zoomcamp.yellow_tripdata_partclust`
+WHERE 
+    tpep_pickup_datetime BETWEEN '2024-03-01' AND '2024-03-15';
+```
+Answer: 310.24 MB for non-partitioned table and 26.84 MB for the partitioned table
 
 #### Question 7. Where is the data stored in the External Table you created? (1 point)
 - Big Query
@@ -58,13 +113,20 @@ Answer:
 - GCP Bucket
 - Big Table
 
+Answer: GCP Bucket
 
 #### Question 8. It is best practice in Big Query to always cluster your data: (1 point)
 - True
 - False
 
-Answer: 
+Answer: False
 
 #### Question 9. Write a `SELECT count(*)` query FROM the materialized table you created. How many bytes does it estimate will be read? Why?
 
-Answer: 
+```sql
+SELECT 
+    count(*)
+FROM 
+    `terraform-demo-485118.zoomcamp.yellow_tripdata_non_partitioned`
+```
+Answer: 0MB
